@@ -14,18 +14,27 @@ datasource db {
 }
 
 model Users {
-  id_user Int    @id @default(autoincrement())
-  name    String @db.VarChar(100)
+  id_user   Int        @id @default(autoincrement())
+  name      String     @db.VarChar(100)
+  email     String     @unique @db.VarChar(50)
+  password  String     @db.VarChar(255)
+  is_active Boolean    @default(true)
+  expenses  Expense[]
+  earnings  Earnings[]
 }
 
 model Expense {
   id_expense Int      @id @default(autoincrement())
   date       DateTime @default(now())
   total      Decimal  @db.Decimal(10, 3)
+  id_user    Int
+  user       Users    @relation(fields: [id_user], references: [id_user])
 }
 
 model Earnings {
   id_earn Int      @id @default(autoincrement())
   date    DateTime @default(now())
   total   Decimal  @db.Decimal(10, 3)
+  Users   Users    @relation(fields: [id_user], references: [id_user])
+  id_user Int
 }
