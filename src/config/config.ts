@@ -1,4 +1,5 @@
+const { PORT = 3000, FRONT_END_URL } = process.env;
 export default () => ({
-  port: parseInt(process.env.PORT, 10) || 3000,
-  frontUrl: process.env.FRONT_END_URL,
+  port: PORT,
+  frontUrl: FRONT_END_URL,
 });

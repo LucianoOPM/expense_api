@@ -1,26 +1,86 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from '@/users/dto/create-user.dto';
-import { UpdateUserDto } from '@/users/dto/update-user.dto';
+import { UserRepository } from '@/users/users.repository';
+import {
+  CreateUser,
+  IncomingSingleQuery,
+  UserQuery,
+  UpdateUser,
+} from './entities/user.entity';
+import { hashPassword } from '@/functions/bcrypt';
 
 @Injectable()
 export class UsersService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(private readonly userRepository: UserRepository) {}
+
+  async create(user: CreateUser) {
+    try {
+      const { password, email, name } = user;
+      const hashedPassword = await hashPassword(password);
+
+      const createUser = {
+        email,
+        name,
+        password: hashedPassword,
+      };
+      const data = await this.userRepository.create(createUser);
+
+      return data;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findByEmail(email: string) {
+    return await this.userRepository.findByEmail(email);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findAll(query: UserQuery) {
+    try {
+      const users = await this.userRepository.findAll(query);
+      const totalQuery = await this.userRepository.count(query);
+      return {
+        users,
+        total: totalQuery,
+      };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  findOne(id: number, query: IncomingSingleQuery) {
+    try {
+      const { earnings = false, expenses = false } = query;
+      const user = this.userRepository.findById(id, {
+        include: { earnings, expenses },
+      });
+      return user;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async update(id: number, user: UpdateUser) {
+    try {
+      const { estatus, name, password } = user;
+      console.log(user);
+
+      const updateUser = {};
+      if (name) {
+        updateUser['name'] = name;
+      }
+      if (typeof estatus === 'boolean') {
+        updateUser['is_active'] = estatus;
+      }
+      if (password) {
+        const hashedPassword = await hashPassword(password);
+        updateUser['password'] = hashedPassword;
+      }
+      console.log(updateUser);
+
+      const data = await this.userRepository.update(id, updateUser);
+      return data;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
