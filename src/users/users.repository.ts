@@ -13,7 +13,7 @@ import { PrismaService } from '@/prisma.service';
 export class UserRepository implements IUserRepository {
   constructor(private readonly model: PrismaService) {}
 
-  async findAll(query: UserQuery): Promise<User[]> {
+  async findAll(query?: UserQuery): Promise<User[]> {
     return await this.model.users.findMany(query);
   }
 
