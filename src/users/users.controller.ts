@@ -10,6 +10,7 @@ import {
   HttpStatus,
   BadRequestException,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from '@/users/users.service';
 import {
@@ -21,6 +22,7 @@ import {
 import { queryBuild } from '@/users/utils/query.builder';
 import { Response } from 'express';
 import { pageHandler } from '@/functions/pageHandler';
+import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -51,6 +53,7 @@ export class UsersController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Query() query: QueryUserDto, @Res() res: Response) {
     try {

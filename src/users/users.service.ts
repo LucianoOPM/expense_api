@@ -34,7 +34,7 @@ export class UsersService {
     return await this.userRepository.findByEmail(email);
   }
 
-  async findAll(query: UserQuery) {
+  async findAll(query?: UserQuery) {
     try {
       const users = await this.userRepository.findAll(query);
       const totalQuery = await this.userRepository.count(query);
