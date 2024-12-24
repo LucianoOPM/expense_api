@@ -22,13 +22,18 @@ import {
 import { queryBuild } from '@/users/utils/query.builder';
 import { Response } from 'express';
 import { pageHandler } from '@/functions/pageHandler';
-import { JwtAuthGuard } from '@/auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { RolesGuard } from '@/guards/role.guard';
+import { Roles } from '@/secure/roles.decorator';
+import { Role } from '@/interfaces/role.enum';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   async create(@Body() body: CreateUserDto, @Res() res: Response) {
     try {
       const { name, email, password } = body;
@@ -53,7 +58,8 @@ export class UsersController {
     }
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   @Get()
   async findAll(@Query() query: QueryUserDto, @Res() res: Response) {
     try {
@@ -80,6 +86,8 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MODERATOR, Role.ADMIN)
   async findOne(
     @Param('id') id: string,
     @Res() res: Response,
@@ -127,6 +135,8 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   async updateStatus(
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
@@ -154,14 +164,17 @@ export class UsersController {
       res.status(error.status).json({ ok: false, error: { message: error } });
     }
   }
+
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.MODERATOR)
   async updateUser(
     @Param('id') id: string,
     @Body() body: UpdateUserDto,
     @Res() res: Response,
   ) {
     try {
-      const { name, password } = body;
+      const { name, password, role } = body;
       const user = await this.usersService.findOne(+id, {});
       if (!user) {
         throw new BadRequestException('User not found');
@@ -169,6 +182,7 @@ export class UsersController {
       const updatedUser = await this.usersService.update(+id, {
         name,
         password,
+        role,
       });
       res.status(HttpStatus.OK).json({
         ok: true,
@@ -177,6 +191,7 @@ export class UsersController {
           name: updatedUser.name,
           email: updatedUser.email,
           estatus: updatedUser.is_active,
+          role: updatedUser.role,
           earnings: updatedUser.earnings,
           expenses: updatedUser.expenses,
         },
