@@ -6,6 +6,7 @@ export interface User {
   email: string;
   password: string;
   is_active: boolean;
+  role: string;
   earnings?: any[];
   expenses?: any[];
 }
@@ -49,6 +50,7 @@ export interface SingleQuery {
 export interface CreateUser extends Pick<User, 'name' | 'email' | 'password'> {}
 export interface UpdateUser extends Partial<Omit<CreateUser, 'email'>> {
   estatus?: boolean;
+  role?: 'ADMIN' | 'SUBSCRIBER' | 'USER' | 'GUEST' | 'MODERATOR';
 }
 
 export interface IUserRepository
