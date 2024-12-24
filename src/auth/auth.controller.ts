@@ -8,15 +8,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { LoginDto, RegisterDto } from '@/auth/dto/auth.dto';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { Public } from '@/secure/metaData';
 
 @Controller()
+@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/register')
+  @Public()
   async create(@Body() body: RegisterDto, @Res() res: Response) {
     try {
       const { name, email, password } = body;
@@ -38,6 +41,7 @@ export class AuthController {
   }
 
   @Post('/login')
+  @Public()
   async login(@Body() body: LoginDto, @Res() res: Response) {
     try {
       const { email, password } = body;
@@ -61,8 +65,7 @@ export class AuthController {
   }
 
   @Get('/me')
-  @UseGuards(JwtAuthGuard)
-  async getMe(@Req() req) {
+  async getMe(@Req() req: Request) {
     const user = req.user;
     return user;
   }
