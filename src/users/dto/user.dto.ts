@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsEmail,
   IsEnum,
+  IsIn,
   IsNotEmpty,
   IsNumberString,
   IsOptional,
@@ -53,6 +54,10 @@ export class UpdateUserDto {
   @IsBoolean()
   @IsOptional()
   estatus?: boolean;
+
+  @IsIn(['admin', 'subscriber', 'user', 'guest', 'moderator'])
+  @IsOptional()
+  role?: 'ADMIN' | 'SUBSCRIBER' | 'USER' | 'GUEST' | 'MODERATOR';
 }
 
 export class QueryUserDto {
