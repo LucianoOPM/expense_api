@@ -61,8 +61,7 @@ export class UsersService {
 
   async update(id: number, user: UpdateUser) {
     try {
-      const { estatus, name, password } = user;
-      console.log(user);
+      const { estatus, name, password, role } = user;
 
       const updateUser = {};
       if (name) {
@@ -75,7 +74,9 @@ export class UsersService {
         const hashedPassword = await hashPassword(password);
         updateUser['password'] = hashedPassword;
       }
-      console.log(updateUser);
+      if (role) {
+        updateUser['role'] = role;
+      }
 
       const data = await this.userRepository.update(id, updateUser);
       return data;
