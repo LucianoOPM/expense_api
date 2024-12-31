@@ -6,19 +6,24 @@ import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
-  app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe());
-  app.setGlobalPrefix('api/v1');
   const configService = app.get(ConfigService);
   const port = configService.get('port') as number;
-  const frontUrl = configService.get('frontUrl') as string;
+  const nextJs = configService.get('nextJs') as string;
+  const astroJs = configService.get('astroJs') as string;
+
+  // 1. Primero el cookie parser
+  app.use(cookieParser());
 
   app.enableCors({
-    origin: [frontUrl],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    origin: [nextJs, astroJs],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Cookie'],
   });
+
+  // 3. Finalmente, otras configuraciones globales
+  app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api/v1');
 
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);

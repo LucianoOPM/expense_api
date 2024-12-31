@@ -49,8 +49,15 @@ export class AuthService {
         username: userBody.name,
         role: userBody.role,
       };
-      const token = await this.jwtService.signAsync(payload);
-      return { token };
+      const token = await this.jwtService.signAsync({ user: payload });
+      return {
+        accessToken: token,
+        user: {
+          name: userBody.name,
+          email: userBody.email,
+          role: userBody.role,
+        },
+      };
     } catch (error) {
       throw new Error(error);
     }

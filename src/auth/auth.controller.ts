@@ -12,11 +12,15 @@ import { Request, Response } from 'express';
 import { LoginDto, RegisterDto } from '@/auth/dto/auth.dto';
 import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
 import { Public } from '@/secure/metaData';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post('/register')
   @Public()
@@ -42,26 +46,25 @@ export class AuthController {
 
   @Post('/login')
   @Public()
-  async login(@Body() body: LoginDto, @Res() res: Response) {
+  async login(@Body() body: LoginDto) {
     try {
       const { email, password } = body;
-      const { token } = await this.authService.login({ email, password });
-
-      res
-        .status(200)
-        .cookie('auth_token', token, {
-          httpOnly: true,
-          maxAge: 60 * 60 * 24 * 30,
-        })
-        .redirect('/api/v1/');
+      const { accessToken, user } = await this.authService.login({
+        email,
+        password,
+      });
+      return { ok: true, user, accessToken };
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      return { message: error.message };
     }
   }
 
   @Post('/logout')
   logout(@Res() res: Response) {
-    res.clearCookie('auth_token').status(200).json({ ok: true });
+    res
+      .clearCookie('token')
+      .status(200)
+      .json({ ok: true, message: 'Logged out successfully' });
   }
 
   @Get('/me')

@@ -58,9 +58,9 @@ export class UsersController {
     }
   }
 
+  @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.MODERATOR)
-  @Get()
   async findAll(@Query() query: QueryUserDto, @Res() res: Response) {
     try {
       const searchQuery = queryBuild(query);
