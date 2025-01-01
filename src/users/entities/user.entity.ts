@@ -7,8 +7,6 @@ export interface User {
   password: string;
   is_active: boolean;
   role: string;
-  earnings?: any[];
-  expenses?: any[];
 }
 
 export interface IncomingQuery {
@@ -35,18 +33,6 @@ export interface UserQuery {
   skip: number;
 }
 
-export interface IncomingSingleQuery {
-  expenses?: boolean;
-  earnings?: boolean;
-}
-
-export interface SingleQuery {
-  include?: {
-    expenses?: boolean;
-    earnings?: boolean;
-  };
-}
-
 export interface CreateUser extends Pick<User, 'name' | 'email' | 'password'> {}
 export interface UpdateUser extends Partial<Omit<CreateUser, 'email'>> {
   estatus?: boolean;
@@ -54,6 +40,6 @@ export interface UpdateUser extends Partial<Omit<CreateUser, 'email'>> {
 }
 
 export interface IUserRepository
-  extends Repository<User, CreateUser, UpdateUser, UserQuery, SingleQuery> {
+  extends Repository<User, CreateUser, UpdateUser, UserQuery> {
   findByEmail(email: string): Promise<User>;
 }
