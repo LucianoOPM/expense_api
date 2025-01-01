@@ -1,11 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '@/users/users.repository';
-import {
-  CreateUser,
-  IncomingSingleQuery,
-  UserQuery,
-  UpdateUser,
-} from './entities/user.entity';
+import { CreateUser, UserQuery, UpdateUser } from './entities/user.entity';
 import { hashPassword } from '@/functions/bcrypt';
 
 @Injectable()
@@ -47,12 +42,9 @@ export class UsersService {
     }
   }
 
-  findOne(id: number, query: IncomingSingleQuery) {
+  findOne(id: number) {
     try {
-      const { earnings = false, expenses = false } = query;
-      const user = this.userRepository.findById(id, {
-        include: { earnings, expenses },
-      });
+      const user = this.userRepository.findById(id);
       return user;
     } catch (error) {
       throw new Error(error);
