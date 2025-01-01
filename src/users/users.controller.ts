@@ -114,7 +114,7 @@ export class UsersController {
         }
       }
 
-      const user = await this.usersService.findOne(+id, queryObject);
+      const user = await this.usersService.findOne(+id);
 
       if (!user) {
         throw new BadRequestException('User not found');
@@ -144,7 +144,7 @@ export class UsersController {
   ) {
     try {
       const { estatus } = body;
-      const user = await this.usersService.findOne(+id, {});
+      const user = await this.usersService.findOne(+id);
       if (!user) {
         throw new BadRequestException('User not found');
       }
@@ -175,7 +175,7 @@ export class UsersController {
   ) {
     try {
       const { name, password, role } = body;
-      const user = await this.usersService.findOne(+id, {});
+      const user = await this.usersService.findOne(+id);
       if (!user) {
         throw new BadRequestException('User not found');
       }
