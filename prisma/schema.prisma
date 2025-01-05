@@ -38,10 +38,16 @@ model movments {
   categories  categories @relation(fields: [category_id], references: [id_category])
 }
 
+enum categories_type {
+  INCOME
+  EXPENSE
+}
+
 model categories {
-  id_category Int        @id @default(autoincrement())
-  name        String     @db.VarChar(100)
-  description String     @db.Text()
-  status      Boolean    @default(true)
+  id_category Int             @id @default(autoincrement())
+  name        String          @db.VarChar(100)
+  description String          @db.Text()
+  status      Boolean         @default(true)
+  type        categories_type
   movments    movments[]
 }

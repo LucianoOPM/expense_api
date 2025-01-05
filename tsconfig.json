@@ -20,7 +20,13 @@
     "paths": {
       "@/*": [
         "src/*"
-      ]
+      ],
+      "@/categories/*": [
+        "src/categories/*"
+      ],
+      "@/movements/*": [
+        "src/movements/*",
+      ],
     }
   }
 }

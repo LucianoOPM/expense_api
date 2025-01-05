@@ -23,7 +23,7 @@ import { Response } from 'express';
 import { pageHandler } from '@/functions/pageHandler';
 import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
 import { RolesGuard } from '@/guards/role.guard';
-import { Roles } from '@/secure/roles.decorator';
+import { Roles } from '@/decorators/roles.decorator';
 import { Role } from '@/interfaces/role.enum';
 
 @Controller('users')

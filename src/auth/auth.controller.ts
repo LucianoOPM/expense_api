@@ -11,7 +11,7 @@ import { AuthService } from '@/auth/auth.service';
 import { Request, Response } from 'express';
 import { LoginDto, RegisterDto } from '@/auth/dto/auth.dto';
 import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
-import { Public } from '@/secure/metaData';
+import { Public } from '@/decorators/metaData';
 import { ConfigService } from '@nestjs/config';
 
 @Controller()
@@ -48,6 +48,8 @@ export class AuthController {
   @Public()
   async login(@Body() body: LoginDto) {
     try {
+      // TODO: RETURN ACCESS TOKEN AND REFRESH TOKEN, REMOVE USER INFORMATION FROM RESPONSE
+      // TODO: INJECTT JWT ON COOKIE
       const { email, password } = body;
       const { accessToken, user } = await this.authService.login({
         email,
