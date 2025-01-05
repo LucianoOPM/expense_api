@@ -16,7 +16,6 @@ import { UsersService } from '@/users/users.service';
 import {
   QueryUserDto,
   CreateUserDto,
-  SingleQueryDto,
   UpdateUserDto,
 } from '@/users/dto/user.dto';
 import { queryBuild } from '@/users/utils/query.builder';
@@ -24,7 +23,7 @@ import { Response } from 'express';
 import { pageHandler } from '@/functions/pageHandler';
 import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
 import { RolesGuard } from '@/guards/role.guard';
-import { Roles } from '@/secure/roles.decorator';
+import { Roles } from '@/decorators/roles.decorator';
 import { Role } from '@/interfaces/role.enum';
 
 @Controller('users')
@@ -88,33 +87,9 @@ export class UsersController {
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MODERATOR, Role.ADMIN)
-  async findOne(
-    @Param('id') id: string,
-    @Res() res: Response,
-    @Query() query: SingleQueryDto,
-  ) {
+  async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
-      const queryObject = {};
-      const positiveValues = ['true', '1'];
-      const negativeValues = ['false', '0'];
-
-      if (query.earnings) {
-        if (positiveValues.includes(query.earnings)) {
-          queryObject['earnings'] = true;
-        } else if (negativeValues.includes(query.earnings)) {
-          queryObject['earnings'] = false;
-        }
-      }
-
-      if (query.expenses) {
-        if (positiveValues.includes(query.expenses)) {
-          queryObject['expenses'] = true;
-        } else if (negativeValues.includes(query.expenses)) {
-          queryObject['expenses'] = false;
-        }
-      }
-
-      const user = await this.usersService.findOne(+id, queryObject);
+      const user = await this.usersService.findOne(+id);
 
       if (!user) {
         throw new BadRequestException('User not found');
@@ -125,8 +100,6 @@ export class UsersController {
           idUser: user.id_user,
           name: user.name,
           email: user.email,
-          earnings: user.earnings,
-          expenses: user.expenses,
         },
       });
     } catch (error) {
@@ -144,7 +117,7 @@ export class UsersController {
   ) {
     try {
       const { estatus } = body;
-      const user = await this.usersService.findOne(+id, {});
+      const user = await this.usersService.findOne(+id);
       if (!user) {
         throw new BadRequestException('User not found');
       }
@@ -156,8 +129,6 @@ export class UsersController {
           name: updatedUser.name,
           email: updatedUser.email,
           estatus: updatedUser.is_active,
-          earnings: updatedUser.earnings,
-          expenses: updatedUser.expenses,
         },
       });
     } catch (error) {
@@ -175,7 +146,7 @@ export class UsersController {
   ) {
     try {
       const { name, password, role } = body;
-      const user = await this.usersService.findOne(+id, {});
+      const user = await this.usersService.findOne(+id);
       if (!user) {
         throw new BadRequestException('User not found');
       }
@@ -192,8 +163,6 @@ export class UsersController {
           email: updatedUser.email,
           estatus: updatedUser.is_active,
           role: updatedUser.role,
-          earnings: updatedUser.earnings,
-          expenses: updatedUser.expenses,
         },
       });
     } catch (error) {

@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import {
   CreateUser,
   IUserRepository,
-  SingleQuery,
   UpdateUser,
   User,
   UserQuery,
@@ -27,13 +26,9 @@ export class UserRepository implements IUserRepository {
     return await this.model.users.findUnique({ where: { email } });
   }
 
-  async findById(id: number, query: SingleQuery): Promise<User> {
+  async findById(id: number): Promise<User> {
     return await this.model.users.findUnique({
       where: { id_user: id },
-      include: {
-        earnings: query.include.earnings,
-        expenses: query.include.expenses,
-      },
     });
   }
 

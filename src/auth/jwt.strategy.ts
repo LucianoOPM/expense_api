@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { AuthorizedUser } from './entities/auth.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -12,7 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: config.get('secretKey'),
     });
   }
-  async validate(payload: any) {
+  async validate(payload: any): Promise<AuthorizedUser> {
     return {
       idUser: payload.user.sub,
       username: payload.user.username,

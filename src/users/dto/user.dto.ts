@@ -96,18 +96,3 @@ export class QueryUserDto {
   @IsOptional()
   limit?: string;
 }
-
-export class SingleQueryDto {
-  @IsNotEmpty()
-  @IsEnum(['1', '0', 'true', 'false'], {
-    message: 'Expenses value should be a 0, 1, true, false value',
-  })
-  @IsOptional()
-  expenses?: string;
-  @IsNotEmpty()
-  @IsEnum(['1', '0', 'true', 'false'], {
-    message: 'Earning value should be a 0, 1, true, false value',
-  })
-  @IsOptional()
-  earnings?: string;
-}
