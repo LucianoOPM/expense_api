@@ -4,18 +4,24 @@ import {
   Body,
   Res,
   Get,
-  Req,
   UseGuards,
+  BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from '@/auth/auth.service';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { LoginDto, RegisterDto } from '@/auth/dto/auth.dto';
-import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { Public } from '@/decorators/metaData';
 import { ConfigService } from '@nestjs/config';
+import { JwtCookieGuard } from '@/auth/guards/jwt-cookie.guard';
+import { User } from '@/decorators/user.decorators';
+import {
+  AuthorizedUser,
+  RefreshTokenPayload,
+} from '@/auth/entities/auth.entity';
 
 @Controller()
-@UseGuards(JwtAuthGuard)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -44,24 +50,51 @@ export class AuthController {
     }
   }
 
+  @Post('/refresh')
+  @UseGuards(JwtCookieGuard)
+  async refresh(
+    @User() user: RefreshTokenPayload,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.refresh(user);
+    const isProd = this.config.get('env') === 'production';
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+    return { ok: true, accessToken };
+  }
+
   @Post('/login')
   @Public()
-  async login(@Body() body: LoginDto) {
+  async login(
+    @Body() body: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     try {
-      // TODO: RETURN ACCESS TOKEN AND REFRESH TOKEN, REMOVE USER INFORMATION FROM RESPONSE
-      // TODO: INJECTT JWT ON COOKIE
-      const { email, password } = body;
-      const { accessToken, user } = await this.authService.login({
-        email,
-        password,
+      const { accessToken, refreshToken } = await this.authService.login(body);
+      const isProd = this.config.get('env') === 'production';
+
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: 'lax',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       });
-      return { ok: true, user, accessToken };
+      return { ok: true, accessToken };
     } catch (error) {
-      return { message: error.message };
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      } else {
+        throw new InternalServerErrorException('Something went wrong');
+      }
     }
   }
 
   @Post('/logout')
+  @UseGuards(JwtAuthGuard)
   logout(@Res() res: Response) {
     res
       .clearCookie('token')
@@ -70,8 +103,8 @@ export class AuthController {
   }
 
   @Get('/me')
-  async getMe(@Req() req: Request) {
-    const user = req.user;
+  @UseGuards(JwtAuthGuard)
+  async getMe(@User() user: AuthorizedUser) {
     return user;
   }
 }

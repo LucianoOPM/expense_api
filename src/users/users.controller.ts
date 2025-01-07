@@ -21,8 +21,8 @@ import {
 import { queryBuild } from '@/users/utils/query.builder';
 import { Response } from 'express';
 import { pageHandler } from '@/functions/pageHandler';
-import { JwtAuthGuard } from '@/guards/jwt-auth.guard';
-import { RolesGuard } from '@/guards/role.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
+import { RolesGuard } from '@/auth/guards/role.guard';
 import { Roles } from '@/decorators/roles.decorator';
 import { Role } from '@/interfaces/role.enum';
 

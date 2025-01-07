@@ -1,14 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { UserRepository } from '@/users/users.repository';
-import { Login, Register } from './entities/auth.entity';
+import {
+  Login,
+  RefreshTokenPayload,
+  Register,
+} from '@/auth/entities/auth.entity';
 import { hashPassword, comparePassword } from '@/functions/bcrypt';
-import { JwtService } from '@nestjs/jwt';
+import { AuthRepository } from '@/auth/auth.repository';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly jwtService: JwtService,
+    private readonly authRepository: AuthRepository,
   ) {}
 
   async create(user: Register) {
@@ -33,33 +42,99 @@ export class AuthService {
   async login(user: Login) {
     try {
       const { email, password } = user;
-      const userBody = await this.userRepository.findByEmail(email);
-      if (!userBody) {
-        throw new Error('Invalid email or password');
+      const userExists = await this.userRepository.findByEmail(email);
+      if (!userExists) {
+        throw new BadRequestException('Invalid email or password');
       }
-      const isPasswordValid = await comparePassword(
+      const validPassword = await comparePassword(
         password,
-        userBody.password,
+        userExists.password,
       );
-      if (!isPasswordValid) {
-        throw new Error('Invalid email or password');
+      if (!validPassword) {
+        throw new BadRequestException('Invalid email or password');
       }
-      const payload = {
-        sub: userBody.id_user,
-        username: userBody.name,
-        role: userBody.role,
-      };
-      const token = await this.jwtService.signAsync({ user: payload });
+      const accessToken = await this.authRepository.accessToken({
+        id_user: userExists.id_user,
+        email: userExists.email,
+        role: userExists.role,
+      });
+
+      const tokenUuid = randomUUID();
+      const refreshToken = await this.authRepository.refreshToken({
+        id: tokenUuid,
+        id_user: userExists.id_user,
+      });
+
+      const data = await this.authRepository.saveToken({
+        user_id: userExists.id_user,
+        token: refreshToken,
+        id: tokenUuid,
+      });
+
+      if (!data) {
+        throw new InternalServerErrorException('Something went wrong');
+      }
+
       return {
-        accessToken: token,
-        user: {
-          name: userBody.name,
-          email: userBody.email,
-          role: userBody.role,
-        },
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
-      throw new Error(error);
+      throw error;
+    }
+  }
+
+  //TODO: Middleware para validar que el access token sea type access
+  async refresh(payload: RefreshTokenPayload) {
+    try {
+      const { idToken, sub, type } = payload;
+
+      if (type !== 'refresh') {
+        throw new BadRequestException('Invalid information');
+      }
+      const userExists = await this.userRepository.findById(sub);
+      if (!userExists) {
+        throw new BadRequestException('Invalid information');
+      }
+      const tokenInfo = await this.authRepository.findByToken({
+        token: idToken,
+        idUser: sub,
+      });
+      if (!tokenInfo) {
+        throw new BadRequestException('Invalid information');
+      }
+
+      const uuid = randomUUID();
+
+      const accessToken = await this.authRepository.accessToken({
+        id_user: userExists.id_user,
+        email: userExists.email,
+        role: userExists.role,
+      });
+      const refreshToken = await this.authRepository.refreshToken({
+        id: uuid,
+        id_user: userExists.id_user,
+      });
+
+      const revoke = await this.authRepository.revokeToken(tokenInfo.id);
+      if (!revoke) {
+        throw new InternalServerErrorException('Something went wrong');
+      }
+      const data = await this.authRepository.saveToken({
+        user_id: userExists.id_user,
+        token: refreshToken,
+        id: uuid,
+      });
+      if (!data) {
+        throw new InternalServerErrorException('Something went wrong');
+      }
+
+      return {
+        accessToken,
+        refreshToken,
+      };
+    } catch (error) {
+      throw error;
     }
   }
 }
