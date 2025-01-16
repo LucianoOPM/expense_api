@@ -8,13 +8,24 @@ datasource db {
 }
 
 model users {
-  id_user   Int        @id @default(autoincrement())
-  name      String     @db.VarChar(100)
-  email     String     @unique(map: "Users_email_key") @db.VarChar(50)
-  is_active Boolean    @default(true)
-  password  String     @db.VarChar(255)
-  role      users_role @default(USER)
-  movments  movments[]
+  id_user       Int             @id @default(autoincrement())
+  name          String          @db.VarChar(100)
+  email         String          @unique(map: "Users_email_key") @db.VarChar(50)
+  is_active     Boolean         @default(true)
+  password      String          @db.VarChar(255)
+  role          users_role      @default(USER)
+  movments      movments[]
+  refresh_token refresh_token[]
+}
+
+model refresh_token {
+  id         String   @id @default(uuid())
+  id_user    Int
+  user       users    @relation(fields: [id_user], references: [id_user], onDelete: Cascade)
+  expires_at DateTime
+  created_at DateTime @default(now())
+  is_revoked Boolean  @default(false)
+  token      String   @db.VarChar(255)
 }
 
 enum users_role {
@@ -38,16 +49,10 @@ model movments {
   categories  categories @relation(fields: [category_id], references: [id_category])
 }
 
-enum categories_type {
-  INCOME
-  EXPENSE
-}
-
 model categories {
-  id_category Int             @id @default(autoincrement())
-  name        String          @db.VarChar(100)
-  description String          @db.Text()
-  status      Boolean         @default(true)
-  type        categories_type
+  id_category Int        @id @default(autoincrement())
+  name        String     @db.VarChar(100)
+  description String     @db.Text()
+  status      Boolean    @default(true)
   movments    movments[]
 }

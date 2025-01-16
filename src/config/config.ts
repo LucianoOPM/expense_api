@@ -3,12 +3,16 @@ const {
   NEXT_JS_URL,
   ASTRO_JS_URL,
   SECRET_KEY,
-  EXPIRATION_TIME,
+  NODE_ENV = 'development',
+  ACCESS_TOKEN_EXPIRATION = '15m',
+  REFRESH_TOKEN_EXPIRATION = '7d',
 } = process.env;
 export default () => ({
   port: PORT,
   nextJs: NEXT_JS_URL,
   astroJs: ASTRO_JS_URL,
   secretKey: SECRET_KEY,
-  expirationTime: EXPIRATION_TIME,
+  env: NODE_ENV,
+  accessTokenExpiration: ACCESS_TOKEN_EXPIRATION,
+  refreshTokenExpiration: REFRESH_TOKEN_EXPIRATION,
 });

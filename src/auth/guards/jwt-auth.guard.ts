@@ -5,7 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Observable } from 'rxjs';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard('jwt-bearer') {
   constructor(private readonly reflector: Reflector) {
     super();
   }
@@ -21,5 +21,4 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     }
     return super.canActivate(context);
   }
-  //si se maneja con roles, se puede implementar el método canActivate y validar el rol
 }
